@@ -1,0 +1,29 @@
+{
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "globals": { },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "warn",
+    "no-debugger": "warn",
+    "no-ex-assign": "error",
+    "complexity": [
+      "warn",
+      15
+    ],
+    "no-undef": "error",
+    "no-fallthrough": "error",
+    "no-shadow": "warn",
+    "no-invalid-this": "error",
+    "no-duplicate-case": "error",
+    "no-cond-assign": "error",
+    "no-const-assign": "error",
+    "no-var": "warn"
+  }
+}

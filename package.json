@@ -1,0 +1,18 @@
+{
+  "name": "llse_modules",
+  "version": "1.0.0",
+  "description": "此仓库下存储可供各个LLSE插件通用模块",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "lint": "eslint ./src --ext .ts",
+    "lint:fix": "eslint ./src --ext .ts --fix"
+  },
+  "keywords": [],
+  "author": "engsr6982",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
