@@ -1,26 +1,12 @@
 {
-  "compilerOptions": {
-    "target": "ES2021",                             /* 设置生成的 JavaScript 的语言版本并包括兼容的库声明。 */
-    "module": "ES6",                                /* 指定生成的模块代码。 */
-    "rootDir": "./src",                             /* 指定源代码文件的根文件夹。 */
-    "typeRoots": [
-      "./HelperLib/src/@types"
-    ],                                              /* 指定多个像 './node_modules/@types' 的文件夹。 */
-    "declaration": true,                            /* 类型声明文件 */
-    "allowJs": true,                                /* 允许 JavaScript 文件作为程序的一部分。使用 'checkJS' 选项获取这些文件的错误。 */
-    "checkJs": true,                                /* 启用在经过类型检查的 JavaScript 文件中报告错误。 */
-    "outDir": "./build",                            /* 指定所有生成文件的输出文件夹。 */
-    "noEmitOnError": true,                          /* 如果有任何类型检查错误报告，则禁用生成文件。 */
-    "isolatedModules": true,                        /* 确保每个文件都可以安全地编译转换，而无需依赖其他导入。 */
-    "esModuleInterop": true,                        /* 发出附加的 JavaScript 以便支持导入 CommonJS 模块。这会使用 'allowSyntheticDefaultImports' 以便进行类型兼容。 */
-    "forceConsistentCasingInFileNames": true,       /* 确保导入时的大小写正确。 */
-    "strict": false,                                /* 启用所有严格的类型检查选项。 */
-    "alwaysStrict": false,                          /* 是否编译后的文件开启严格模式。 */
-    "skipLibCheck": true,                           /* 跳过对所有 .d.ts 文件的类型检查。 */
-    "removeComments": true                          /* 是否去除注释。 */
-  },
+  "extends": "../tsconfig.json",
   "include": [
     "./src",
-    "./HelperLib/src"
-  ]
+    "../HelperLib/src"
+  ],
+  "compilerOptions": {
+    // "rootDir": "./src",
+    "outDir": "./build",
+    "declaration": true
+  }
 }

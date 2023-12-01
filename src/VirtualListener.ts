@@ -1,37 +1,47 @@
-class VirtualListener {
+interface _Listen_Item {
+    event: string;
+    callback: (...args: any) => any;
+    id: string;
+}
+
+type _Listen_Cache = Array<_Listen_Item>;
+
+export default class VirtualListener {
     constructor() {
         // 用于保存监听信息的数组
         this.listen_event = [];
     }
 
+    listen_event: _Listen_Cache;
+
     /**
-     * 添加事件监听器
-     * @param {string} event - 事件名
-     * @param {function} callback - 回调函数
-     * @returns {String} 监听器ID  用于取消事件
+     * 监听事件
+     * @param event 事件名
+     * @param callback 回调函数
+     * @returns 监听器ID  用于取消事件
      */
-    listen(event, callback) {
+    listen(event: string, callback: () => any): string {
         // 回调函数必须是一个函数类型
-        if (typeof callback !== 'function') {
-            throw new Error('Callback must be a function.');
+        if (typeof callback !== "function") {
+            throw new Error("Callback must be a function.");
         }
         const id = this.RandomID(10);
         // 保存监听信息到数组
         this.listen_event.push({
             event,
             callback,
-            id
+            id,
         });
         return id;
     }
 
     /**
      * 触发事件，调用监听器的回调函数，并返回是否发送成功
-     * @param {string} event - 事件名
-     * @param  {...any} args - 事件参数
-     * @returns {boolean} 是否发送成功
+     * @param event 事件名
+     * @param args 事件参数
+     * @returns 是否发送成功
      */
-    send(event, ...args) {
+    send(event: string, ...args: any): boolean {
         try {
             // 查找匹配的监听器
             const listeners = this.listen_event.filter((listener) => listener.event === event);
@@ -59,10 +69,10 @@ class VirtualListener {
      * 随机ID
      * @returns ID
      */
-    RandomID(num = 16, char = 'QWERTYUIOPASDFGHJKLZXCVBNM0192837465') {
-        let str = '';
+    RandomID(num = 16, char = "QWERTYUIOPASDFGHJKLZXCVBNM0192837465") {
+        let str = "";
         for (let i = 0; i < num; i++) {
-            let index = Math.floor(Math.random() * char.length);
+            const index = Math.floor(Math.random() * char.length);
             str += char[index];
         }
         return str;
@@ -73,9 +83,9 @@ class VirtualListener {
      * @param {String} id 事件ID
      * @returns {Boolean} 是否删除成功
      */
-    delete(id) {
+    delete(id: string): boolean {
         try {
-            const index = this.listen_event.findIndex(i => i.id == id);
+            const index = this.listen_event.findIndex((i) => i.id == id);
             if (index === -1) {
                 return false;
             }
@@ -87,21 +97,22 @@ class VirtualListener {
     }
 }
 
-const tps = new VirtualListener();
+// Usage:
+// const tps = new VirtualListener();
 
-// 添加事件监听器
-const eveid = tps.listen('add', (data) => {
-    console.log(`Received data: ${data}`);
-    if (data == 'Hello, world! (10)') {
-        const deleve = tps.delete(eveid);
-        console.log(`取消事件: ${deleve ? 'success' : 'fail'}`);
-    }
-});
+// // 添加事件监听器
+// const eveid = tps.listen("add", (data) => {
+//     console.log(`Received data: ${data}`);
+//     if (data == "Hello, world! (10)") {
+//         const deleve = tps.delete(eveid);
+//         console.log(`取消事件: ${deleve ? "success" : "fail"}`);
+//     }
+// });
 
-// 持续触发事件
-let i = 0;
-setInterval(() => {
-    const success = tps.send('add', `Hello, world! (${i})`);
-    // console.log(`Send event "add" (${i}): ${success ? 'success' : 'fail'}`);
-    i++;
-}, 1000);
+// // 持续触发事件
+// let i = 0;
+// setInterval(() => {
+//     const success = tps.send("add", `Hello, world! (${i})`);
+//     // console.log(`Send event "add" (${i}): ${success ? 'success' : 'fail'}`);
+//     i++;
+// }, 1000);

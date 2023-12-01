@@ -1,24 +1,24 @@
-
 /**
  * 检查是否需要进行版本更新
- * @param {string} url 远程版本号所在的URL
- * @param {Array<number>} version 当前版本号，形如 [0, 1, 0, 1]
+ * @param pluginName 插件名称
+ * @param url MineBBS资源URL地址
+ * @param version 当前版本号，形如 [0, 1, 0, 1]
  */
-export async function BegCheckUpdate(pluginName,url, version) {
-    // 发送HTTP GET请求获取远程版本号
+export async function BegCheckUpdate(pluginName: string, url: string, version: Array<number>) {
+    // 发送HTTP GET请求获取html页面文件
     try {
         network.httpGet(url, (status, result) => {
             if (status === 200) {
                 _callback(result);
             } else {
-                logger.error(`请求失败 ${status}  ${url}`);
+                logger.error(`The request failed ${url} : ${status}`);
             }
-        })    
+        });
     } catch (e) {
         logger.error(`${e}\n${e.stack}`);
     }
 
-    async function _callback(result) {
+    async function _callback(result: string) {
         const ver = await matchString(result);
         if (ver === null) {
             logger.error(`匹配版本号失败！ 请检查MineBBS版本号是否按要求设置! 格式: x.x.x`);
@@ -37,43 +37,42 @@ export async function BegCheckUpdate(pluginName,url, version) {
 
 /**
  * 从HTML代码中匹配出版本号
- * @param {string} str 包含版本号的HTML代码
- * @returns {Promise<string>} 匹配到的版本号
+ * @param str 包含版本号的HTML代码
+ * @returns 匹配到的版本号
  */
-async function matchString(str) {
+async function matchString(str: string): Promise<string> {
+    // eslint-disable-next-line no-useless-escape
     const regex = /<span class="u-muted">([\d\.]+)<\/span>/;
     const match = str.match(regex);
     return match ? match[1] : null;
 }
 
-
 /**
  * 检查版本号
- * @param {*} nversion 新版本号  0.2.0
- * @param {*} lversion 当前版本号  0,1,0
- * @returns boolean 是否需要更新
+ * @param nversion 新版本号  0.2.0
+ * @param lversion 当前版本号  0,1,0
+ * @returns 是否需要更新
  */
-async function checkVersion(nversion, lversion) {
+async function checkVersion(nversion: string | Array<number>, lversion: string | Array<number>): Promise<boolean> {
     try {
         // logger.debug(nversion, "/", lversion);
-        // 检查是否为数组
-        if (!Array.isArray(nversion)) {
-            nversion = nversion.split(".");
-        }
-        if (!Array.isArray(lversion)) {
-            lversion = lversion.split(",");
-        }
-        // 限制长度
-        lversion.length = 3;
+        // 检查是否为数组不是则转为数组
+        // @ts-ignore
+        const _n: Array<number> = Array.isArray(nversion) ? (nversion as Array<number>) : (nversion as string).split(".");
+        // @ts-ignore
+        const _l: Array<number> = Array.isArray(lversion) ? (lversion as Array<number>) : (lversion as string).split(",");
+
+        _l.length = 3; // 限制长度
+
         // logger.debug(nversion, "/", lversion);
         // 检查长度
-        if (nversion.length !== 3 || lversion.length !== 3) {
+        if (_n.length !== 3 || _l.length !== 3) {
             return null;
         }
         // logger.debug(nversion, "/", lversion);
         // 匹配每一个版本号
-        for (let i = 0; i < nversion.length; i++) {
-            if (nversion[i] > lversion[i]) {
+        for (let i = 0; i < _n.length; i++) {
+            if (_n[i] > _l[i]) {
                 return true;
             }
         }

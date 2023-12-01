@@ -1,11 +1,18 @@
+interface _TimeObj {
+    Str: string;
+    Y: number | string;
+    M: number | string;
+    D: number | string;
+}
+
 export default class CsvLogger {
     /**
      * 实例化CsvLogger
-     * @param {String} path 存放CSV日志到文件夹 .\\logs\\
-     * @param {String} fileName CSV文件名  log.csv  或 log_%Y%-%M%-%D%.csv
-     * @param {String} header CSV文件第一行内容
+     * @param path 存放CSV日志到文件夹 .\\logs\\
+     * @param fileName CSV文件名  log.csv  或 log_%Y%-%M%-%D%.csv
+     * @param header CSV文件第一行内容
      */
-    constructor(path, fileName, header = '') {
+    constructor(path: string, fileName: string, header = "") {
         this._path = path;
         this._fileName = fileName;
         this._header = header;
@@ -14,18 +21,24 @@ export default class CsvLogger {
         this.checkFileName();
     }
 
+    _path: string;
+    _fileName: string;
+    _header: string;
+    _openName: string;
+    _openFile: string;
+
     /**
      * 获取日期字符串
      * @returns 2021-6-10
      */
-    getTimeStr() {
+    getTimeStr(): _TimeObj {
         const t = system.getTimeObj();
         return {
             Str: `${t.Y}-${t.M}-${t.D}`,
             Y: t.Y,
             M: t.M,
-            D: t.D
-        }
+            D: t.D,
+        };
     }
 
     /**
@@ -33,9 +46,10 @@ export default class CsvLogger {
      */
     checkFileName() {
         const dateStr = this.getTimeStr();
-        const name = this._fileName.replace(/%Y%/, dateStr.Y)
-            .replace(/%M%/, dateStr.M)
-            .replace(/%D%/, dateStr.D);
+        const name = this._fileName
+            .replace(/%Y%/, dateStr.Y as string)
+            .replace(/%M%/, dateStr.M as string)
+            .replace(/%D%/, dateStr.D as string);
         if (name !== this._openName) {
             this._openName = name;
             this._openFile = this._path + this._openName;
@@ -48,10 +62,11 @@ export default class CsvLogger {
 
     /**
      * 写入一行日志
-     * @param {String} msg 日志内容
+     * @param msg 日志内容
+     * @returns 是否写入成功
      */
-    write(msg) {
+    write(msg: string): boolean {
         this.checkFileName();
-        file.writeLine(this._openFile, msg);
+        return file.writeLine(this._openFile, msg);
     }
 }

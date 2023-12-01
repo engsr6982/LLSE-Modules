@@ -1,6 +1,4 @@
-
-
-// Usage: 
+// Usage:
 // new checkJSONElements(__init.Config, Config, true).check().then(newConfig => {
 //     FileOperation.setConfig(newConfig).saveFile();
 // }).catch(e => {
@@ -10,15 +8,19 @@
 export default class checkJSONElements {
     /**
      * 实例化检查器
-     * @param {Object} standard  标准配置文件
-     * @param {Object} current 当前配置文件
-     * @param {Boolean} log 是否打印信息
+     * @param standard 标准配置文件
+     * @param current 当前配置文件
+     * @param log 是否打印信息
      */
-    constructor(standard, current, log = false) {
+    constructor(standard: object, current: object, log = false) {
         this.standard = standard;
         this.current = current;
         this.log = log;
     }
+
+    standard: object;
+    current: object;
+    log: boolean;
 
     toString() {
         JSON.stringify(this.standard);
@@ -27,25 +29,27 @@ export default class checkJSONElements {
     async _getMissingAttributes(callback) {
         try {
             const cache = [];
-            await _check(this.standard, this.current, '');
+            await _check(this.standard, this.current, "");
             callback(cache);
-            async function _check(standard, current, parentKey) {
+            // eslint-disable-next-line no-inner-declarations
+            async function _check(standard: object, current: object, parentKey: string) {
                 try {
                     for (const key in standard) {
-                        if (!standard.hasOwnProperty(key)) continue;
+                        // if (!standard.hasOwnProperty(key)) continue;
+                        if (!Object.prototype.hasOwnProperty.call(key)) continue;
                         const value = standard[key];
                         if (Object.prototype.toString.call(value) == "[object Object]") {
                             // 如果是对象，则递归检查
                             // 如果当前配置文件没有该属性，则传递一个空对象
-                            await _check(value, current[key] || {}, parentKey + '.' + key);
+                            await _check(value, current[key] || {}, parentKey + "." + key);
                         } else {
                             // 如果不是对象，则检查是否存在于当前配置文件中
                             if (!(key in current)) {
                                 // 如果不存在，将缺少的属性添加到缓存中
                                 cache.push({
-                                    father: parentKey,// 父键（可能没有）
-                                    ConfigurationItem: key,// 配置项
-                                    ConfigurationItemValue: value// 配置项值
+                                    father: parentKey, // 父键（可能没有）
+                                    ConfigurationItem: key, // 配置项
+                                    ConfigurationItemValue: value, // 配置项值
                                 });
                             }
                         }
@@ -59,9 +63,9 @@ export default class checkJSONElements {
         }
     }
 
-    async _setNestedProperty(path, value) {
+    async _setNestedProperty(path: string, value: any) {
         try {
-            const keys = path.split('.');
+            const keys = path.split(".");
             let current = this.current;
 
             for (let i = 0; i < keys.length; i++) {
@@ -81,14 +85,14 @@ export default class checkJSONElements {
 
     async check() {
         try {
-            await this._getMissingAttributes(newConfig => {
+            await this._getMissingAttributes((newConfig) => {
                 if (newConfig.length == 0 && this.log) {
                     logger.info(`配置文件检查通过`);
                     return null;
                 }
-                newConfig.forEach(i => {
-                    let path = i.father + '.' + i.ConfigurationItem;
-                    if (path.startsWith('.')) {
+                newConfig.forEach((i) => {
+                    let path = i.father + "." + i.ConfigurationItem;
+                    if (path.startsWith(".")) {
                         path = path.slice(1);
                     }
                     this._setNestedProperty(path, i.ConfigurationItemValue);
