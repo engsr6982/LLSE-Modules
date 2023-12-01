@@ -182,10 +182,16 @@ export default class PermissionForm {
      * @param callback 回调，是否继续操作
      */
     private continueForm(player: Player, func: (pl: Player) => any) {
-        player.sendModalForm(this.tr("title"), this.tr("continueForm.content"), this.tr("continueForm.button0"), this.tr("continueForm.button1"), (pl, res) => {
-            if (res == null || res == false) return this.formClose(pl);
-            func.call(this, pl);
-        });
+        player.sendModalForm(
+            this.tr("title"),
+            this.tr("continueForm.content"),
+            this.tr("continueForm.button0"),
+            this.tr("continueForm.button1"),
+            (pl, res) => {
+                if (res == null || res == false) return this.formClose(pl);
+                func.call(this, pl);
+            },
+        );
     }
 
     private selectGroup(player: Player, callback: (groupName: string) => any): void {
@@ -200,7 +206,7 @@ export default class PermissionForm {
                         0: group.groupName,
                         1: group.authority.length,
                         2: group.user.length,
-                    })
+                    }),
                 );
                 cache.push(group.groupName); // 添加进缓存
             });
@@ -235,7 +241,7 @@ export default class PermissionForm {
                                 return data.xuid2name(xuid) || xuid; // 尝试xuid查找名称
                             })
                             .join(`§r §l§e| §r`),
-                    })
+                    }),
                 );
             }
         }
@@ -297,7 +303,7 @@ export default class PermissionForm {
                         default:
                             this.formClose(pl);
                     }
-                }
+                },
             );
         });
     }
@@ -424,15 +430,19 @@ export default class PermissionForm {
             const allPlayer = mc.getOnlinePlayers();
             const fm = this.customForm();
             fm.addLabel(`Edit Group: ${groupName}`); // 0
-            fm.addStepSlider(this.tr("addUserForm.stepSliderTitle"), Array.of(this.tr("addUserForm.stepSliderItem0"), this.tr("addUserForm.stepSliderItem1"))); // 1
+            fm.addStepSlider(
+                this.tr("addUserForm.stepSliderTitle"),
+                Array.of(this.tr("addUserForm.stepSliderItem0"), this.tr("addUserForm.stepSliderItem1")),
+            ); // 1
             fm.addDropdown(
                 this.tr("addUserForm.dropdownTitle"),
-                allPlayer.map((apl) => apl.realName)
+                allPlayer.map((apl) => apl.realName),
             ); // 2
             fm.addInput(this.tr("addUserForm.inputTitle"), "string player name"); //3
             player.sendForm(fm, (pl, dt) => {
                 if (dt == null) return this.formClose(pl);
-                const xuid = dt[1] === 0 ? allPlayer[dt[2]].xuid : dt[3] != "" ? data.name2xuid(dt[3]) : this.inputIsEmpty(pl) ? null : null;
+                const xuid =
+                    dt[1] === 0 ? allPlayer[dt[2]].xuid : dt[3] != "" ? data.name2xuid(dt[3]) : this.inputIsEmpty(pl) ? null : null;
                 // 检查XUID
                 if (xuid) {
                     this.getPermInst().groupAddUser(groupName, xuid);
@@ -474,10 +484,13 @@ export default class PermissionForm {
     private searchComponent(player: Player, callback: (xuid) => any) {
         const allPlayer = mc.getOnlinePlayers();
         const fm = this.customForm();
-        /* 0 */ fm.addStepSlider(this.tr("searchComponent.stepSliderTitle"), Array.of(this.tr("searchComponent.stepSliderItem0"), this.tr("searchComponent.stepSliderItem1")));
+        /* 0 */ fm.addStepSlider(
+            this.tr("searchComponent.stepSliderTitle"),
+            Array.of(this.tr("searchComponent.stepSliderItem0"), this.tr("searchComponent.stepSliderItem1")),
+        );
         /* 1 */ fm.addDropdown(
             this.tr("searchComponent.dropdownTitle"),
-            allPlayer.map((apl) => apl.realName)
+            allPlayer.map((apl) => apl.realName),
         );
         /* 2 */ fm.addInput(this.tr("searchComponent.inputTitle"), "string player name");
         player.sendForm(fm, (pl, dt) => {
@@ -518,7 +531,7 @@ export default class PermissionForm {
                     this.tr("searchUserPermissionForm.Label-0", {
                         0: inf ? inf.name : key, // 显示权限名
                         1: source[key].join(`§r §l§e| §r`), // 显示来源
-                    })
+                    }),
                 );
             }
             // 显示统计信息
@@ -526,7 +539,7 @@ export default class PermissionForm {
                 this.tr("searchUserPermissionForm.Label-1", {
                     0: data.xuid2name(xuid) || xuid,
                     1: authority.length,
-                })
+                }),
             );
             player.sendForm(fm, (pl) => {
                 this.continueForm(pl, () => this.searchPanel(pl));

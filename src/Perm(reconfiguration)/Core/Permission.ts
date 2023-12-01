@@ -206,7 +206,7 @@ export default class PermissionGroup {
         const tmp = this._getUserList();
         tmp[name].Perm.splice(
             tmp[name].Perm.findIndex((i: string) => i === perm),
-            1
+            1,
         );
         return this._updateUserList(tmp);
     }
@@ -237,7 +237,7 @@ export default class PermissionGroup {
         const tmp = this._getUserList();
         tmp[name].User.splice(
             tmp[name].User.findIndex((i: string) => i === xuid),
-            1
+            1,
         );
         return this._updateUserList(tmp);
     }
@@ -337,7 +337,7 @@ export default class PermissionGroup {
         const def = this._getDefault();
         def.Perm.splice(
             def.Perm.findIndex((p) => p === perm),
-            1
+            1,
         );
         return this._updateDefault(def);
     }

@@ -141,15 +141,21 @@ export default class PermGroup_Form {
      * @param {Player} player
      */
     doYouWantToContinue(player: Player) {
-        player.sendModalForm(this.tr("title", GUI_Title), this.tr("doYouWantToContinue.content"), this.tr("doYouWantToContinue.button1"), this.tr("doYouWantToContinue.button2"), (pl, id) => {
-            switch (id) {
-                case true:
-                    this.index(pl);
-                    break;
-                default:
-                    this.closeForm(pl);
-            }
-        });
+        player.sendModalForm(
+            this.tr("title", GUI_Title),
+            this.tr("doYouWantToContinue.content"),
+            this.tr("doYouWantToContinue.button1"),
+            this.tr("doYouWantToContinue.button2"),
+            (pl, id) => {
+                switch (id) {
+                    case true:
+                        this.index(pl);
+                        break;
+                    default:
+                        this.closeForm(pl);
+                }
+            },
+        );
     }
 
     /**
@@ -175,7 +181,7 @@ export default class PermGroup_Form {
                         })
                             .join()
                             .replace(/,/g, `§r §l§e| §r`),
-                    })
+                    }),
                 );
             }
         }
@@ -213,7 +219,7 @@ export default class PermGroup_Form {
                     0: i,
                     1: group[i].Perm.length,
                     2: group[i].User.length,
-                })
+                }),
             );
         }
         player.sendForm(fm, (pl, id) => {
@@ -228,10 +234,16 @@ export default class PermGroup_Form {
      * @param {Function} callback
      */
     operationCategory(player: Player, callback: (oper: boolean) => void) {
-        player.sendModalForm(this.tr("title", GUI_Title), this.tr("content"), this.tr("operationCategory.button1"), this.tr("operationCategory.button2"), (pl, res) => {
-            if (res == null) return this.closeForm(pl);
-            callback(Boolean(res).valueOf());
-        });
+        player.sendModalForm(
+            this.tr("title", GUI_Title),
+            this.tr("content"),
+            this.tr("operationCategory.button1"),
+            this.tr("operationCategory.button2"),
+            (pl, res) => {
+                if (res == null) return this.closeForm(pl);
+                callback(Boolean(res).valueOf());
+            },
+        );
     }
 
     /**
@@ -352,7 +364,7 @@ export default class PermGroup_Form {
                 this.tr("addUser.selectPlayer"),
                 allPlayer.map((pl) => {
                     return pl.realName;
-                })
+                }),
             ); // 1
             fm.addInput(this.tr("addUser.inputPlayer"), "String"); // 2
             fm.addSwitch(this.tr("addUser.switch")); // 3
@@ -388,7 +400,7 @@ export default class PermGroup_Form {
                 groupInfo.map((u) => {
                     const tmp = data.xuid2name(u);
                     return tmp ? tmp : u;
-                })
+                }),
             );
             player.sendForm(fm, (pl, dt) => {
                 if (dt == null) return this.closeForm(pl);
@@ -427,7 +439,7 @@ export default class PermGroup_Form {
             this.tr("addUser.selectPlayer"),
             allPlayer.map((pl) => {
                 return pl.realName;
-            })
+            }),
         ); // 1
         fm.addInput(this.tr("addUser.inputPlayer"), "String"); // 2
         fm.addSwitch(this.tr("addUser.switch")); // 3
@@ -465,13 +477,19 @@ export default class PermGroup_Form {
      */
     deletePermissionGroup(player: Player) {
         this.selectPermissionGroup(player, (group) => {
-            player.sendModalForm(this.tr("title"), `§eAre you sure you want to delete the permission group <${group}>?`, "§cYes", "§aNo", (pl, res) => {
-                if (res == null || res == false) return this.closeForm(pl);
-                if (res == true) {
-                    perm.deleteGroup(group);
-                    this.doYouWantToContinue(pl);
-                }
-            });
+            player.sendModalForm(
+                this.tr("title"),
+                `§eAre you sure you want to delete the permission group <${group}>?`,
+                "§cYes",
+                "§aNo",
+                (pl, res) => {
+                    if (res == null || res == false) return this.closeForm(pl);
+                    if (res == true) {
+                        perm.deleteGroup(group);
+                        this.doYouWantToContinue(pl);
+                    }
+                },
+            );
         });
     }
 }

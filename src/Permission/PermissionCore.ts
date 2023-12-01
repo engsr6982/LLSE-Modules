@@ -29,7 +29,7 @@ export default class PermissionCore {
                 JSON.stringify({
                     adminGroup: [],
                     userGroup: [],
-                })
+                }),
             );
         }
         // 读取文件
@@ -100,7 +100,7 @@ export default class PermissionCore {
         const { adminGroup } = this.permissionFileCache;
         this.permissionFileCache.adminGroup.splice(
             adminGroup.findIndex((xuids) => xuids === xuid),
-            1
+            1,
         );
         return this.savePermissionFile();
     }
@@ -233,7 +233,7 @@ export default class PermissionCore {
         const { index, group } = this.getGroup(name);
         this.permissionFileCache.userGroup[index].authority.splice(
             group.authority.findIndex((i) => i === authority),
-            1
+            1,
         );
         return this.savePermissionFile();
     }
@@ -277,7 +277,7 @@ export default class PermissionCore {
         const { index, group } = this.getGroup(name);
         this.permissionFileCache.userGroup[index].user.splice(
             group.user.findIndex((i) => i === xuid),
-            1
+            1,
         );
         return this.savePermissionFile();
     }
@@ -370,7 +370,7 @@ export default class PermissionCore {
         if (!this.hasSpecificPermissionsInPublicGroup(authority)) return false;
         this.permissionFileCache.publicGroup.authority.splice(
             this.permissionFileCache.publicGroup.authority.findIndex((p) => p === authority),
-            1
+            1,
         );
         return this.savePermissionFile();
     }
@@ -457,7 +457,7 @@ export default class PermissionCore {
         if (!this.isThePermissionRegistered(authority)) return false;
         this.allPermissions.splice(
             this.allPermissions.findIndex((i) => i.value === authority),
-            1
+            1,
         );
         return true;
     }

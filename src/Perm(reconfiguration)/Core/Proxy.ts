@@ -16,6 +16,7 @@ export class proxyObject {
      * @returns 所有权限值
      */
     static values() {
+        // @ts-ignore
         return Object.values(_Perm_Object).map(({ value }) => value);
     }
     /**
@@ -23,6 +24,7 @@ export class proxyObject {
      * @returns 所有权限名
      */
     static names() {
+        // @ts-ignore
         return Object.values(_Perm_Object).map(({ name }) => name);
     }
 

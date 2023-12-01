@@ -38,7 +38,7 @@ export default class JSONChecker {
                 const subMissingProperties = this.checkMissingProperties(
                     standardObj[key],
                     currentObj[key],
-                    parentKey ? `${parentKey}.${key}` : key // 更新父级键路径
+                    parentKey ? `${parentKey}.${key}` : key, // 更新父级键路径
                 );
                 missingProperties.push(...subMissingProperties); // 将子级缺失属性加入结果数组
             }
@@ -69,7 +69,7 @@ export default class JSONChecker {
                 const subExtraProperties = this.checkExtraProperties(
                     standardObj[key],
                     currentObj[key],
-                    parentKey ? `${parentKey}.${key}` : key // 更新父级键路径
+                    parentKey ? `${parentKey}.${key}` : key, // 更新父级键路径
                 );
                 extraProperties.push(...subExtraProperties); // 将子级多出属性加入结果数组
             }
