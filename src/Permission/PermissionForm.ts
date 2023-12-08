@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import PermissionCore from "./PermissionCore.js";
 
 export default class PermissionForm {
@@ -11,19 +12,102 @@ export default class PermissionForm {
 
     i18nFileInit(): boolean {
         try {
-            i18n.load(this.i18nStoragePath, "zh_CN");
+            logger.warn(this.i18nStoragePath);
+            i18n.load(
+                this.i18nStoragePath,
+                "zh_CN",
+                {
+                    "en": {},
+                    "zh_CN": {
+                        "title": "§d权限组管理GUI",
+                        "content": "§a§l• 请选择选择一个操作",
+                        "noPermissions": "无权限！",
+                        "formClose": "§e[§l§d权限组§r§e] §b表单已放弃",
+                        "index": {
+                            "0": "查看",
+                            "1": "编辑",
+                            "2": "搜索",
+                            "3": "公共组"
+                        },
+                        "view": {
+                            "0": "返回上一级",
+                            "1": "查看所有权限组",
+                            "2": "查看指定权限组"
+                        },
+                        "edit": {
+                            "0": "返回上一级",
+                            "1": "新建组",
+                            "2": "删除组",
+                            "3": "重命名组",
+                            "4": "编辑用户",
+                            "5": "编辑权限"
+                        },
+                        "search": {
+                            "0": "返回上一级",
+                            "1": "用户所在的权限组",
+                            "2": "用户拥有的权限",
+                            "3": "用户权限的来源"
+                        },
+                        "continueForm": {
+                            "content": "§a§l• 操作完成\n是否继续?",
+                            "button0": "§a§l继续",
+                            "button1": "§c§l放弃表单"
+                        },
+                        "selectGroup": {
+                            "content": "§l§a• 选择一个权限组",
+                            "button": "名称: {0}\n权限: {1} | 用户: {2}"
+                        },
+                        "viewForm": "§l§b|§r名称: {0}\n§l§b|§r权限: {1}\n§l§b|§r用户: {2}",
+                        "createGroupForm": "输入权限组名称\n注意：允许1-16字节，允许中文字母数字下划线",
+                        "inputIsEmpty": "§e[§l§d权限组§r§e] §b输入框为空！",
+                        "deleteGroupForm": {
+                            "content": "§e您确定要删除权限组<{0}>吗？\n组用户：{1}\n组权限：{2}",
+                            "button0": "§c确认删除",
+                            "button1": "§a取消删除"
+                        },
+                        "renameGroupForm": "当前名称：{0}\n\n输入新名称\n注意：允许1-16字节，允许中文字母数字下划线",
+                        "selectCategory": {
+                            "button0": "返回上一页",
+                            "button1": "§a§l添加用户",
+                            "button2": "§c§l删除用户"
+                        },
+                        "addUserForm": {
+                            "stepSliderTitle": "请选择操作模式",
+                            "stepSliderItem0": "在线模式",
+                            "stepSliderItem1": "离线模式",
+                            "dropdownTitle": "在线| 选择一个用户",
+                            "inputTitle": "离线| 输入用户名"
+                        },
+                        "xuidNull": "查询玩家XUID失败！",
+                        "deleteUserForm": "当前正在编辑：{0}\n请选择需要删除的用户",
+                        "searchComponent": {
+                            "stepSliderTitle": "请选择操作模式",
+                            "stepSliderItem0": "在线模式",
+                            "stepSliderItem1": "离线模式",
+                            "dropdownTitle": "在线| 选择一个用户",
+                            "inputTitle": "离线| 输入用户名"
+                        },
+                        "searchUserGroupForm": "搜索失败！未找到此用户！",
+                        "searchUserPermissionForm": {
+                            "Label-0": "§l§b|§r权限: {0}\n§l§b|§r来源: {1}",
+                            "Label-1": "用户[{0}]共计[{1}]个权限"
+                        }
+                    }
+                },
+            );
             return true;
         } catch (err) {
+            logger.error(`${err}\n${err.stack}`);
             return false;
         }
     }
     /**
      * 权限组GUI模块
-     * @param i18nStoragePath i18n存储路径
+     * @param i18nStoragePath_ i18n存储路径
      * @param permissionCoreInstance 权限组实例（函数返回已实例化的权限组）
      */
-    constructor(i18nStoragePath: string, permissionCoreInstance: () => PermissionCore) {
-        this.i18nStoragePath = i18nStoragePath;
+    constructor(i18nStoragePath_: string, permissionCoreInstance: () => PermissionCore) {
+        this.i18nStoragePath = i18nStoragePath_;
         this.getPermInst = permissionCoreInstance;
         this.i18nFileInit();
     }
@@ -49,7 +133,7 @@ export default class PermissionForm {
      */
     index(player: Player) {
         const p = this.getPermInst();
-        if (p.isAdmin(player.xuid)) return player.tell(this.tr("noPermissions")); // 无权限
+        if (!p.isAdmin(player.xuid)) return player.tell(this.tr("noPermissions")); // 无权限
         const fm = this.simpleForm();
         fm.addButton(this.tr("index.0"));
         fm.addButton(this.tr("index.1"));
