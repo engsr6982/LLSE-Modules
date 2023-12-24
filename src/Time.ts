@@ -1,4 +1,4 @@
-export class Time {
+export class time {
     /**
      * 格式化Date到对象
      * @param date_ Date
