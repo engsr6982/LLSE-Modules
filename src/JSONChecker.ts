@@ -11,8 +11,12 @@ export default class JSONChecker {
         this.printInfo = printInfo; // 是否打印补齐和删除属性的信息，可选，默认为false
     }
 
-    standardJSON: object;
-    currentJSON: object;
+    standardJSON: {
+        [key: string]: any;
+    };
+    currentJSON: {
+        [key: string]: any;
+    };
     printInfo: boolean;
 
     /**
@@ -23,7 +27,11 @@ export default class JSONChecker {
      * @returns 缺失属性信息
      */
     checkMissingProperties(standardObj = this.standardJSON, currentObj = this.currentJSON, parentKey = "") {
-        const missingProperties = [];
+        const missingProperties: Array<{
+            parentKey: string;
+            key: string;
+            value: string;
+        }> = [];
 
         for (const key in standardObj) {
             if (!(key in currentObj)) {
@@ -55,7 +63,10 @@ export default class JSONChecker {
      * @returns 多出属性信息
      */
     checkExtraProperties(standardObj = this.standardJSON, currentObj = this.currentJSON, parentKey = "") {
-        const extraProperties = [];
+        const extraProperties: Array<{
+            parentKey: string;
+            key: string;
+        }> = [];
 
         for (const key in currentObj) {
             if (!(key in standardObj)) {

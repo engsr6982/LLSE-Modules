@@ -279,7 +279,7 @@ export default class PermissionForm {
     }
 
     private selectGroup(player: Player, callback: (groupName: string) => any): void {
-        const cache = []; // 缓存组名称
+        const cache: Array<string> = []; // 缓存组名称
         const fm = this.simpleForm();
         fm.setContent(this.tr("selectGroup.content")); // 设置内容
         this.getPermInst()
@@ -294,7 +294,7 @@ export default class PermissionForm {
                 );
                 cache.push(group.groupName); // 添加进缓存
             });
-        player.sendForm(fm, (pl, id) => {
+        player.sendForm(fm, (pl, id: number) => {
             if (id == null) return this.formClose(pl);
             callback(cache[id]); // 返回指定组
         });
@@ -416,11 +416,15 @@ export default class PermissionForm {
     private editPermissionForm(player: Player) {
         this.selectGroup(player, (groupName) => {
             const p = this.getPermInst(); // 权限组实例
-            const allPermissionName = p
+            const allPermissionName: Array<string> = p
                 .getAllPermissions() // 获取所有已注册权限
                 .map(({ value }) => value); // 取出权限值
-            const oldData = {}; // 原始数据
-            const newData = {}; // 变动数据
+            const oldData: {
+                [key: string]: boolean;
+            } = {}; // 原始数据
+            const newData: {
+                [key: string]: boolean;
+            } = {}; // 变动数据
             // form
             const fm = this.customForm().addLabel(`Edit Group: ${groupName}`);
             allPermissionName.forEach((i) => {
@@ -429,7 +433,7 @@ export default class PermissionForm {
                 const pm = p.getPermission(i);
                 fm.addSwitch(pm ? pm.name : i, isHave);
             });
-            player.sendForm(fm, (pl, dt: Array<string>) => {
+            player.sendForm(fm, (pl, dt: Array<boolean>) => {
                 if (dt == null) return this.formClose(pl);
                 dt.shift(); // 去除第一个文本元素
                 for (let i = 0; i < dt.length; i++) {
@@ -439,7 +443,7 @@ export default class PermissionForm {
                     if (oldData[PermValue] === false && newData[PermValue] === true) {
                         // 如果原始数据false，新数据true，则添加权限
                         p.groupAddPermissions(groupName, PermValue);
-                    } else if (oldData[PermValue] === true && newData === false) {
+                    } else if (oldData[PermValue] === true && newData[PermValue] === false) {
                         // 如果原始数据true，新数据false，则删除权限
                         p.groupDeletePermissions(groupName, PermValue);
                     }
@@ -462,8 +466,12 @@ export default class PermissionForm {
         const allPermissionName = p
             .getAllPermissions() // 获取所有已注册权限
             .map(({ value }) => value); // 取出权限值
-        const oldData = {}; // 原始数据
-        const newData = {}; // 变动数据
+        const oldData: {
+            [key: string]: boolean;
+        } = {}; // 原始数据
+        const newData: {
+            [key: string]: boolean;
+        } = {}; // 变动数据
         // form
         const fm = this.customForm().addLabel(`Edit Group: ${groupName}`);
         allPermissionName.forEach((i) => {
@@ -472,7 +480,7 @@ export default class PermissionForm {
             const pm = p.getPermission(i);
             fm.addSwitch(pm ? pm.name : i, isHave);
         });
-        player.sendForm(fm, (pl, dt: Array<string>) => {
+        player.sendForm(fm, (pl, dt: Array<boolean>) => {
             if (dt == null) return this.formClose(pl);
             dt.shift();
             for (let i = 0; i < dt.length; i++) {
@@ -481,7 +489,7 @@ export default class PermissionForm {
             allPermissionName.forEach((PermValue) => {
                 if (oldData[PermValue] === false && newData[PermValue] === true) {
                     p.publicGroupAddPermissions(PermValue);
-                } else if (oldData[PermValue] === true && newData === false) {
+                } else if (oldData[PermValue] === true && newData[PermValue] === false) {
                     p.publicGroupDeletePermissions(PermValue);
                 }
             });
@@ -565,7 +573,7 @@ export default class PermissionForm {
      * @param player
      * @param callback 回调玩家XUID/null
      */
-    private searchComponent(player: Player, callback: (xuid) => any) {
+    private searchComponent(player: Player, callback: (xuid: string) => any) {
         const allPlayer = mc.getOnlinePlayers();
         const fm = this.customForm();
         /* 0 */ fm.addStepSlider(
