@@ -1,102 +1,102 @@
 export default class PermissionCore {
-    private hasKeyinObject(object: object, key: string): boolean {
+    private checkKeyInObject(object: object, key: string): boolean {
         return Object.prototype.hasOwnProperty.call(object, key);
     }
 
-    /** 是否启用公共组 */
-    isPublicGroup: boolean;
-    /** 存储路径 */
-    private storagePath: string;
-    /** 文件缓存 */
-    permissionFileCache: PermissionFileJSON;
+    /** Enable Public Group */
+    isPublicGroupEnabled: boolean;
+    /** Storage Path */
+    private pathForStorage: string;
+    /** File Cache */
+    private permissionFileCache: PermissionFileJSON;
 
-    constructor(storagePath: string, isPublicGroup: boolean = false) {
-        this.storagePath = storagePath;
-        this.isPublicGroup = isPublicGroup;
-        this.readPermissionFile();
-        this.initPublicGroup();
+    constructor(pathForStorage: string, isPublicGroupEnabled: boolean = false) {
+        this.pathForStorage = pathForStorage;
+        this.isPublicGroupEnabled = isPublicGroupEnabled;
+        this.loadPermissionFile();
+        this.initializePublicGroup();
     }
 
     /**
-     * 读取权限文件
-     * @returns 是否读取成功
+     * Load Permission File
+     * @returns Success status
      */
-    readPermissionFile(): boolean {
-        if (!file.exists(this.storagePath)) {
-            // 文件不存在
+    private loadPermissionFile(): boolean {
+        if (!file.exists(this.pathForStorage)) {
+            // File does not exist
             file.writeTo(
-                this.storagePath,
+                this.pathForStorage,
                 JSON.stringify({
                     adminGroup: [],
                     userGroup: [],
                 }),
             );
         }
-        // 读取文件
-        this.permissionFileCache = JSON.parse(file.readFrom(this.storagePath));
+        // Load file
+        this.permissionFileCache = JSON.parse(file.readFrom(this.pathForStorage));
         return true;
     }
 
     /**
-     * 保存权限文件
-     * @returns 是否保存成功
+     * Save Permission File
+     * @returns Success status
      */
-    savePermissionFile(): boolean {
-        return file.writeTo(this.storagePath, JSON.stringify(this.permissionFileCache));
+    private savePermissionFile(): boolean {
+        return file.writeTo(this.pathForStorage, JSON.stringify(this.permissionFileCache));
     }
 
     // ====================================================================================================
 
     /**
-     * 初始化公共组
-     * @returns 是否初始化成功
+     * Initialize Public Group
+     * @returns Success status
      */
-    private initPublicGroup(): boolean {
-        if (this.isPublicGroup === false) return false;
-        if (this.hasKeyinObject(this.permissionFileCache, "publicGroup")) return false;
+    private initializePublicGroup(): boolean {
+        if (this.isPublicGroupEnabled === false) return false;
+        if (this.checkKeyInObject(this.permissionFileCache, "publicGroup")) return false;
         this.permissionFileCache["publicGroup"] = {
             authority: [],
         };
         return this.savePermissionFile();
     }
 
-    //! 管理员接口
+    //! Admin Interface
 
     /**
-     * 获取所有管理员
-     * @returns 所有管理员
+     * Get All Admins
+     * @returns All admins
      */
-    getAllAdmins() {
+    retrieveAllAdmins() {
         return this.permissionFileCache.adminGroup;
     }
 
     /**
-     * 检查用户是否是管理员
-     * @param xuid 用户xuid
-     * @returns 是否是管理员
+     * Check if User is Admin
+     * @param xuid User xuid
+     * @returns Admin status
      */
-    isAdmin(xuid: string): boolean {
+    checkIfAdmin(xuid: string): boolean {
         return this.permissionFileCache.adminGroup.indexOf(xuid) !== -1;
     }
 
     /**
-     * 添加一个管理员
-     * @param xuid 用户xuid
-     * @returns 是否添加成功
+     * Add an Admin
+     * @param xuid User xuid
+     * @returns Success status
      */
-    addAdmin(xuid: string): boolean {
-        if (this.isAdmin(xuid)) return false;
+    addAdminUser(xuid: string): boolean {
+        if (this.checkIfAdmin(xuid)) return false;
         this.permissionFileCache.adminGroup.push(xuid);
         return this.savePermissionFile();
     }
 
     /**
-     * 移除一个管理员
-     * @param xuid 用户xuid
-     * @returns 是否移除成功
+     * Remove an Admin
+     * @param xuid User xuid
+     * @returns Success status
      */
-    removeAdmin(xuid: string): boolean {
-        if (!this.isAdmin(xuid)) return false;
+    removeAdminUser(xuid: string): boolean {
+        if (!this.checkIfAdmin(xuid)) return false;
         const { adminGroup } = this.permissionFileCache;
         this.permissionFileCache.adminGroup.splice(
             adminGroup.findIndex((xuids) => xuids === xuid),
@@ -105,33 +105,33 @@ export default class PermissionCore {
         return this.savePermissionFile();
     }
 
-    //! 用户组接口
+    //! User Group Interface
 
     /**
-     * 检查名称合法性 (允许1-16字节，允许中文字母数字下划线)
-     * @param name 名称
-     * @returns 是否合法
+     * Check Name Validity (Allows 1-16 bytes, allows Chinese letters, numbers, underscores)
+     * @param name Name
+     * @returns Validity
      */
-    private _isTheNameLegal(name: string): boolean {
+    private validateName(name: string): boolean {
         return RegExp(/^[a-zA-Z0-9_\u4e00-\u9fa5]{1,16}$/g).test(name);
     }
 
     /**
-     * 组是否存在
-     * @param name 权限组名称
-     * @returns 是否存在
+     * Check if Group Exists
+     * @param name Permission Group Name
+     * @returns Existence
      */
-    isGroupExist(name: string): boolean {
+    checkGroupExistence(name: string): boolean {
         return this.permissionFileCache.userGroup.some((i) => i.groupName === name);
     }
 
     /**
-     * 获取组
-     * @param name 组名称
-     * @returns 组
+     * Get Group
+     * @param name Group Name
+     * @returns Group
      */
-    getGroup(name: string): GetGroupType | null {
-        if (!this.isGroupExist(name)) return null;
+    retrieveGroup(name: string): GetGroupType | null {
+        if (!this.checkGroupExistence(name)) return null;
         const { userGroup } = this.permissionFileCache;
         const index = userGroup.findIndex((i) => i.groupName === name);
         if (index !== -1) {
@@ -144,21 +144,21 @@ export default class PermissionCore {
     }
 
     /**
-     * 获取所有组
-     * @returns 用户组列表
+     * Get All Groups
+     * @returns User Group List
      */
-    getAllGroups(): Array<UserGroupElements> {
+    retrieveAllGroups(): Array<UserGroupElements> {
         return this.permissionFileCache.userGroup;
     }
 
     /**
-     * 创建组
-     * @param name 组名称
-     * @returns 是否创建成功
+     * Create Group
+     * @param name Group Name
+     * @returns Success status
      */
-    createGroup(name: string): boolean {
-        if (this.isGroupExist(name)) return false;
-        if (!this._isTheNameLegal(name)) return false;
+    createNewGroup(name: string): boolean {
+        if (this.checkGroupExistence(name)) return false;
+        if (!this.validateName(name)) return false;
         this.permissionFileCache.userGroup.push({
             groupName: name,
             authority: [],
@@ -168,69 +168,69 @@ export default class PermissionCore {
     }
 
     /**
-     * 删除组
-     * @param name 组名称
-     * @returns 是否删除成功
+     * Delete Group
+     * @param name Group Name
+     * @returns Success status
      */
-    deleteGroup(name: string): boolean {
-        if (!this.isGroupExist(name)) return false;
-        const { index } = this.getGroup(name);
+    deleteExistingGroup(name: string): boolean {
+        if (!this.checkGroupExistence(name)) return false;
+        const { index } = this.retrieveGroup(name);
         this.permissionFileCache.userGroup.splice(index, 1);
         return this.savePermissionFile();
     }
 
     /**
-     * 重命名组
-     * @param name 组名称
-     * @param newGroupName 新的组名称
-     * @returns 是否重命名成功
+     * Rename Group
+     * @param name Group Name
+     * @param newGroupName New Group Name
+     * @returns Success status
      */
-    renameGroup(name: string, newGroupName: string): boolean {
-        if (!this.isGroupExist(name)) return false;
-        if (!this._isTheNameLegal(newGroupName)) return false;
-        const { index } = this.getGroup(name);
+    renameExistingGroup(name: string, newGroupName: string): boolean {
+        if (!this.checkGroupExistence(name)) return false;
+        if (!this.validateName(newGroupName)) return false;
+        const { index } = this.retrieveGroup(name);
         this.permissionFileCache.userGroup[index].groupName = newGroupName;
         return this.savePermissionFile();
     }
 
     /**
-     * 指定组是否有指定权限
-     * @param name 组名称
-     * @param authority 权限
-     * @returns 是否拥有
+     * Check if Group has Specific Permissions
+     * @param name Group Name
+     * @param authority Permission
+     * @returns Ownership
      */
-    groupHasSpecifiedPermissions(name: string, authority: string): boolean {
-        if (!this.isGroupExist(name)) return false;
-        const group = this.getGroup(name);
+    checkGroupPermission(name: string, authority: string): boolean {
+        if (!this.checkGroupExistence(name)) return false;
+        const group = this.retrieveGroup(name);
         if (group === null) return false;
         return group.group.authority.some((i) => i === authority);
     }
 
     /**
-     * 给组添加权限
-     * @param name 组名称
-     * @param authority 权限
-     * @returns 是否添加成功
+     * Add Permissions to Group
+     * @param name Group Name
+     * @param authority Permission
+     * @returns Success status
      */
-    groupAddPermissions(name: string, authority: string): boolean {
-        if (!this.isGroupExist(name)) return false; // 组不存在
-        if (!this._isThePermissionLegal(authority)) return false; // 权限不合法
-        if (this.groupHasSpecifiedPermissions(name, authority)) return false; // 权限已添加
-        const { index } = this.getGroup(name);
+    addGroupPermissions(name: string, authority: string): boolean {
+        if (!this.checkGroupExistence(name)) return false; // Group does not exist
+        if (!this.validatePermission(authority)) return false; // Permission is not valid
+        if (this.checkGroupPermission(name, authority)) return false; // Permission already added
+        const { index } = this.retrieveGroup(name);
         this.permissionFileCache.userGroup[index].authority.push(authority);
         return this.savePermissionFile();
     }
 
     /**
-     * 给组删除权限
-     * @param name 组名称
-     * @param authority 权限
-     * @returns 是否删除成功
+     * Remove Permissions from Group
+     * @param name Group Name
+     * @param authority Permission
+     * @returns Success status
      */
-    groupDeletePermissions(name: string, authority: string): boolean {
-        if (!this.isGroupExist(name)) return false;
-        if (!this.groupHasSpecifiedPermissions(name, authority)) return false;
-        const { index, group } = this.getGroup(name);
+    removeGroupPermissions(name: string, authority: string): boolean {
+        if (!this.checkGroupExistence(name)) return false;
+        if (!this.checkGroupPermission(name, authority)) return false;
+        const { index, group } = this.retrieveGroup(name);
         this.permissionFileCache.userGroup[index].authority.splice(
             group.authority.findIndex((i) => i === authority),
             1,
@@ -239,42 +239,42 @@ export default class PermissionCore {
     }
 
     /**
-     * 指定组是否有指定用户
-     * @param name 组名称
-     * @param xuid 用户xuid
-     * @returns 是否拥有
+     * Check if Group has Specific Users
+     * @param name Group Name
+     * @param xuid User xuid
+     * @returns Ownership
      */
-    groupHasSpecifiedUsers(name: string, xuid: string): boolean {
-        if (!this.isGroupExist(name)) return false;
-        const group = this.getGroup(name);
+    checkGroupUser(name: string, xuid: string): boolean {
+        if (!this.checkGroupExistence(name)) return false;
+        const group = this.retrieveGroup(name);
         if (group === null) return false;
         return group.group.user.some((i) => i === xuid);
     }
 
     /**
-     * 给组添加用户
-     * @param name 组名称
-     * @param xuid 用户xuid
-     * @returns 是否添加成功
+     * Add User to Group
+     * @param name Group Name
+     * @param xuid User xuid
+     * @returns Success status
      */
-    groupAddUser(name: string, xuid: string): boolean {
-        if (!this.isGroupExist(name)) return false;
-        if (this.groupHasSpecifiedUsers(name, xuid)) return false;
-        const { index } = this.getGroup(name);
+    addUserToGroup(name: string, xuid: string): boolean {
+        if (!this.checkGroupExistence(name)) return false;
+        if (this.checkGroupUser(name, xuid)) return false;
+        const { index } = this.retrieveGroup(name);
         this.permissionFileCache.userGroup[index].user.push(xuid);
         return this.savePermissionFile();
     }
 
     /**
-     * 给组删除用户
-     * @param name 组名称
-     * @param xuid 用户xuid
-     * @returns 是否删除成功
+     * Remove User from Group
+     * @param name Group Name
+     * @param xuid User xuid
+     * @returns Success status
      */
-    groupDeleteUser(name: string, xuid: string): boolean {
-        if (!this.isGroupExist(name)) return false;
-        if (!this.groupHasSpecifiedUsers(name, xuid)) return false;
-        const { index, group } = this.getGroup(name);
+    removeUserFromGroup(name: string, xuid: string): boolean {
+        if (!this.checkGroupExistence(name)) return false;
+        if (!this.checkGroupUser(name, xuid)) return false;
+        const { index, group } = this.retrieveGroup(name);
         this.permissionFileCache.userGroup[index].user.splice(
             group.user.findIndex((i) => i === xuid),
             1,
@@ -283,11 +283,11 @@ export default class PermissionCore {
     }
 
     /**
-     * 获取拥有用户的组
-     * @param xuid 用户xuid
-     * @returns 组
+     * Get Groups with User
+     * @param xuid User xuid
+     * @returns Group
      */
-    getUserGroups(xuid: string): Array<UserGroupElements> {
+    retrieveUserGroups(xuid: string): Array<UserGroupElements> {
         const data: Array<UserGroupElements> = [];
         const { userGroup } = this.permissionFileCache;
         for (let i = 0; i < userGroup.length; i++) {
@@ -299,75 +299,75 @@ export default class PermissionCore {
     }
 
     /**
-     * 获取用户拥有的权限
-     * @param xuid 用户xuid
-     * @returns 权限
+     * Get User Permissions
+     * @param xuid User xuid
+     * @returns Permissions
      */
-    getUserPermissions(xuid: string): GetUserPermissionsType {
+    retrieveUserPermissions(xuid: string): GetUserPermissionsType {
         const data: GetUserPermissionsType = {
             authority: [],
             source: {},
         };
-        const group = this.getUserGroups(xuid); // 获取拥有用户的组
+        const group = this.retrieveUserGroups(xuid); // Get Groups with User
         for (let i = 0; i < group.length; i++) {
-            if (group[i].authority.length === 0) continue; // 组没有权限 跳过
+            if (group[i].authority.length === 0) continue; // Group has no permissions, skip
 
             group[i].authority.forEach((perm) => {
                 if (!data.authority.some((data_perm) => data_perm === perm)) {
-                    // 组的权限已未加进待返回缓存中
-                    data.authority.push(perm); // 添加进所有权限里
+                    // Group's permission has not been added to return cache
+                    data.authority.push(perm); // Add to all permissions
                 }
 
-                if (!this.hasKeyinObject(data.source, perm)) {
-                    data.source[perm] = []; // 初始化来源[]
+                if (!this.checkKeyInObject(data.source, perm)) {
+                    data.source[perm] = []; // Initialize source[]
                 }
 
                 if (!data.source[perm].some((source_array_groupName) => source_array_groupName === group[i].groupName)) {
-                    data.source[perm].push(group[i].groupName); // 添加来源 组名到数组
+                    data.source[perm].push(group[i].groupName); // Add source Group Name to array
                 }
             });
         }
         return data;
     }
 
-    //! 公共组接口
+    //! Public Group Interface
 
     /**
-     * 获取公共组权限
-     * @returns 权限
+     * Get Public Group Permissions
+     * @returns Permissions
      */
-    getPublicGroupPermissions(): Array<string> {
+    retrievePublicGroupPermissions(): Array<string> {
         return this.permissionFileCache.publicGroup.authority;
     }
 
     /**
-     * 公共组是否有指定权限
-     * @param authority 权限
-     * @returns 是否拥有
+     * Check if Public Group has Specific Permissions
+     * @param authority Permission
+     * @returns Ownership
      */
-    hasSpecificPermissionsInPublicGroup(authority: string): boolean {
-        return this.getPublicGroupPermissions().some((p) => p === authority);
+    checkPublicGroupPermission(authority: string): boolean {
+        return this.retrievePublicGroupPermissions().some((p) => p === authority);
     }
 
     /**
-     * 公共组添加权限
-     * @param authority 权限
-     * @returns 是否添加成功
+     * Add Permissions to Public Group
+     * @param authority Permission
+     * @returns Success status
      */
-    publicGroupAddPermissions(authority: string): boolean {
-        if (!this._isThePermissionLegal(authority)) return false;
-        if (this.hasSpecificPermissionsInPublicGroup(authority)) return false;
+    addPublicGroupPermissions(authority: string): boolean {
+        if (!this.validatePermission(authority)) return false;
+        if (this.checkPublicGroupPermission(authority)) return false;
         this.permissionFileCache.publicGroup.authority.push(authority);
         return this.savePermissionFile();
     }
 
     /**
-     * 公共组删除权限
-     * @param authority 权限
-     * @returns 是否删除成功
+     * Remove Permissions from Public Group
+     * @param authority Permission
+     * @returns Success status
      */
-    publicGroupDeletePermissions(authority: string): boolean {
-        if (!this.hasSpecificPermissionsInPublicGroup(authority)) return false;
+    removePublicGroupPermissions(authority: string): boolean {
+        if (!this.checkPublicGroupPermission(authority)) return false;
         this.permissionFileCache.publicGroup.authority.splice(
             this.permissionFileCache.publicGroup.authority.findIndex((p) => p === authority),
             1,
@@ -375,73 +375,73 @@ export default class PermissionCore {
         return this.savePermissionFile();
     }
 
-    //! 其他接口
+    //! Other Interface
     /**
-     * 用户是否有指定权限
-     * @param xuid 用户xuid
-     * @param authority 权限
-     * @param publicGroup 是否检查公共组中的权限
-     * @returns 是否有权限
+     * Check if User has Specific Permissions
+     * @param xuid User xuid
+     * @param authority Permission
+     * @param publicGroup Check Permissions in Public Group
+     * @returns Permission status
      */
-    checkUserPermission(xuid: string, authority: string, publicGroup: boolean = this.isPublicGroup) {
-        if (this.getUserPermissions(xuid).authority.some((p) => p === authority)) {
+    verifyUserPermission(xuid: string, authority: string, publicGroup: boolean = this.isPublicGroupEnabled) {
+        if (this.retrieveUserPermissions(xuid).authority.some((p) => p === authority)) {
             return true;
         }
-        return publicGroup && this.isPublicGroup ? this.hasSpecificPermissionsInPublicGroup(authority) : false;
+        return publicGroup && this.isPublicGroupEnabled ? this.checkPublicGroupPermission(authority) : false;
     }
 
-    //! 权限注册接口
+    //! Permission Registration Interface
 
     /**
-     * 权限是否合法（6~12位，允许数字、字母）
-     * @param authority 权限
-     * @returns 是否合法
+     * Check if Permission is Valid (6~12 characters, allows numbers, letters)
+     * @param authority Permission
+     * @returns Validity
      */
-    private _isThePermissionLegal(authority: string): boolean {
+    private validatePermission(authority: string): boolean {
         return RegExp(/^[a-zA-Z0-9]{6,12}$/g).test(authority);
     }
 
-    /** 所有已权限 */
-    private allPermissions: Array<RegPermissionElement> = [];
+    /** All Registered Permissions */
+    private registeredPermissions: Array<RegPermissionElement> = [];
 
     /**
-     * 获取所有注册权限
-     * @returns 权限列表
+     * Get All Registered Permissions
+     * @returns Permission List
      */
-    getAllPermissions(): Array<RegPermissionElement> {
-        return this.allPermissions;
+    retrieveAllPermissions(): Array<RegPermissionElement> {
+        return this.registeredPermissions;
     }
 
     /**
-     * 获取一个权限
-     * @param value 权限值
-     * @returns 权限对象
+     * Get a Permission
+     * @param value Permission Value
+     * @returns Permission Object
      */
-    getPermission(value: string): RegPermissionElement | null {
-        const index = this.allPermissions.findIndex((i) => i.value === value);
-        return index !== -1 ? this.allPermissions[index] : null;
+    retrievePermission(value: string): RegPermissionElement | null {
+        const index = this.registeredPermissions.findIndex((i) => i.value === value);
+        return index !== -1 ? this.registeredPermissions[index] : null;
     }
 
     /**
-     * 权限是否已注册
-     * @param authority 权限
-     * @returns 是否注册
+     * Check if Permission is Registered
+     * @param authority Permission
+     * @returns Registration status
      */
-    isThePermissionRegistered(authority: string): boolean {
-        return this.allPermissions.some((i) => i.value === authority);
+    checkPermissionRegistration(authority: string): boolean {
+        return this.registeredPermissions.some((i) => i.value === authority);
     }
 
     /**
-     * 注册权限
-     * @param name 权限名
-     * @param authority 权限值
-     * @returns 是否注册成功
+     * Register Permission
+     * @param name Permission Name
+     * @param authority Permission Value
+     * @returns Success status
      */
-    registrationPermissions(name: string, authority: string): boolean {
-        if (!this._isTheNameLegal(name)) return false; // 名称不合法
-        if (!this._isThePermissionLegal(authority)) return false; // 权限值不合法
-        if (this.isThePermissionRegistered(authority)) return false; // 权限值已注册
-        this.allPermissions.push({
+    registerPermission(name: string, authority: string): boolean {
+        if (!this.validateName(name)) return false; // Name is not valid
+        if (!this.validatePermission(authority)) return false; // Permission value is not valid
+        if (this.checkPermissionRegistration(authority)) return false; // Permission value is already registered
+        this.registeredPermissions.push({
             name: name,
             value: authority,
         });
@@ -449,14 +449,14 @@ export default class PermissionCore {
     }
 
     /**
-     * 取消注册权限
-     * @param authority 权限
-     * @returns 是否取消成功
+     * Unregister Permission
+     * @param authority Permission
+     * @returns Success status
      */
-    unRegistrationPermissions(authority: string): boolean {
-        if (!this.isThePermissionRegistered(authority)) return false;
-        this.allPermissions.splice(
-            this.allPermissions.findIndex((i) => i.value === authority),
+    unregisterPermission(authority: string): boolean {
+        if (!this.checkPermissionRegistration(authority)) return false;
+        this.registeredPermissions.splice(
+            this.registeredPermissions.findIndex((i) => i.value === authority),
             1,
         );
         return true;
