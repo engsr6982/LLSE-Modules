@@ -106,7 +106,7 @@ export default class moneys {
                 case "score":
                     return player.reduceScore(this.cfg.ScoreType, deMoney);
                 default:
-                    this.unknownMoneyType(player);
+                    return this.unknownMoneyType(player);
             }
         }
         this.tell(player, `${this.cfg.MoneyName}不足！ 无法继续操作!`);

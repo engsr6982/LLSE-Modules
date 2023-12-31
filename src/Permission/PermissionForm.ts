@@ -133,7 +133,7 @@ export default class PermissionForm {
      */
     index(player: Player) {
         const p = this.getPermInst();
-        if (!p.isAdmin(player.xuid)) return player.tell(this.tr("noPermissions")); // 无权限
+        if (!p.checkIfAdmin(player.xuid)) return player.tell(this.tr("noPermissions")); // 无权限
         const fm = this.simpleForm();
         fm.addButton(this.tr("index.0"));
         fm.addButton(this.tr("index.1"));
@@ -174,11 +174,11 @@ export default class PermissionForm {
                     this.index(pl);
                     break;
                 case 1:
-                    this.viewForm(pl, this.getPermInst().getAllGroups());
+                    this.viewForm(pl, this.getPermInst().retrieveAllGroups());
                     break;
                 case 2:
                     this.selectGroup(pl, (name) => {
-                        this.viewForm(pl, [this.getPermInst().getGroup(name).group]);
+                        this.viewForm(pl, [this.getPermInst().retrieveGroup(name).group]);
                     });
                     break;
                 default:
@@ -283,7 +283,7 @@ export default class PermissionForm {
         const fm = this.simpleForm();
         fm.setContent(this.tr("selectGroup.content")); // 设置内容
         this.getPermInst()
-            .getAllGroups()
+            .retrieveAllGroups()
             .forEach((group) => {
                 fm.addButton(
                     this.tr("selectGroup.button", {
@@ -317,7 +317,7 @@ export default class PermissionForm {
                         0: groupName,
                         1: authority
                             .map((value) => {
-                                return p.getPermission(value) || value; // 尝试权限组查找名称
+                                return p.retrievePermission(value) || value; // 尝试权限组查找名称
                             })
                             .join(`§r §l§e| §r`),
                         2: user
@@ -354,7 +354,7 @@ export default class PermissionForm {
         player.sendForm(fm, (pl, dt: Array<string>) => {
             if (dt == null) return this.formClose(pl);
             if (dt[0] == "") return this.inputIsEmpty(pl);
-            p.createGroup(dt[0]);
+            p.createNewGroup(dt[0]);
             this.continueForm(pl, () => this.editPanel(pl)); // 回调-连锁操作
         });
     }
@@ -365,7 +365,7 @@ export default class PermissionForm {
      */
     private deleteGroupForm(player: Player) {
         this.selectGroup(player, (name) => {
-            const { user, authority } = this.getPermInst().getGroup(name).group;
+            const { user, authority } = this.getPermInst().retrieveGroup(name).group;
             player.sendModalForm(
                 this.tr("title"),
                 this.tr("deleteGroupForm.content", {
@@ -378,7 +378,7 @@ export default class PermissionForm {
                 (pl, res) => {
                     switch (res) {
                         case true:
-                            this.getPermInst().deleteGroup(name);
+                            this.getPermInst().deleteExistingGroup(name);
                             this.continueForm(pl, () => this.editPanel(pl)); // 继续
                             break;
                         case false:
@@ -403,7 +403,7 @@ export default class PermissionForm {
             player.sendForm(fm, (pl, dt) => {
                 if (dt == null) return this.formClose(pl);
                 if (dt[0] == "") return this.inputIsEmpty(pl);
-                this.getPermInst().renameGroup(name, dt[0]);
+                this.getPermInst().renameExistingGroup(name, dt[0]);
                 this.continueForm(pl, () => this.editPanel(pl));
             });
         });
@@ -417,7 +417,7 @@ export default class PermissionForm {
         this.selectGroup(player, (groupName) => {
             const p = this.getPermInst(); // 权限组实例
             const allPermissionName: Array<string> = p
-                .getAllPermissions() // 获取所有已注册权限
+                .retrieveAllPermissions() // 获取所有已注册权限
                 .map(({ value }) => value); // 取出权限值
             const oldData: {
                 [key: string]: boolean;
@@ -428,9 +428,9 @@ export default class PermissionForm {
             // form
             const fm = this.customForm().addLabel(`Edit Group: ${groupName}`);
             allPermissionName.forEach((i) => {
-                const isHave = p.groupHasSpecifiedPermissions(groupName, i); // 检查是否有这个权限
+                const isHave = p.checkGroupPermission(groupName, i); // 检查是否有这个权限
                 oldData[i] = isHave; // 缓存
-                const pm = p.getPermission(i);
+                const pm = p.retrievePermission(i);
                 fm.addSwitch(pm ? pm.name : i, isHave);
             });
             player.sendForm(fm, (pl, dt: Array<boolean>) => {
@@ -442,10 +442,10 @@ export default class PermissionForm {
                 allPermissionName.forEach((PermValue) => {
                     if (oldData[PermValue] === false && newData[PermValue] === true) {
                         // 如果原始数据false，新数据true，则添加权限
-                        p.groupAddPermissions(groupName, PermValue);
+                        p.addGroupPermissions(groupName, PermValue);
                     } else if (oldData[PermValue] === true && newData[PermValue] === false) {
                         // 如果原始数据true，新数据false，则删除权限
-                        p.groupDeletePermissions(groupName, PermValue);
+                        p.removeGroupPermissions(groupName, PermValue);
                     }
                     // 剩余情况：
                     // 1. 原始false  新false   忽略
@@ -464,7 +464,7 @@ export default class PermissionForm {
         const groupName = "PublicGroup";
         const p = this.getPermInst(); // 权限组实例
         const allPermissionName = p
-            .getAllPermissions() // 获取所有已注册权限
+            .retrieveAllPermissions() // 获取所有已注册权限
             .map(({ value }) => value); // 取出权限值
         const oldData: {
             [key: string]: boolean;
@@ -475,9 +475,9 @@ export default class PermissionForm {
         // form
         const fm = this.customForm().addLabel(`Edit Group: ${groupName}`);
         allPermissionName.forEach((i) => {
-            const isHave = p.groupHasSpecifiedPermissions(groupName, i);
+            const isHave = p.checkGroupPermission(groupName, i);
             oldData[i] = isHave;
-            const pm = p.getPermission(i);
+            const pm = p.retrievePermission(i);
             fm.addSwitch(pm ? pm.name : i, isHave);
         });
         player.sendForm(fm, (pl, dt: Array<boolean>) => {
@@ -488,9 +488,9 @@ export default class PermissionForm {
             }
             allPermissionName.forEach((PermValue) => {
                 if (oldData[PermValue] === false && newData[PermValue] === true) {
-                    p.publicGroupAddPermissions(PermValue);
+                    p.addPublicGroupPermissions(PermValue);
                 } else if (oldData[PermValue] === true && newData[PermValue] === false) {
-                    p.publicGroupDeletePermissions(PermValue);
+                    p.removePublicGroupPermissions(PermValue);
                 }
             });
             this.continueForm(pl, () => this.index(pl));
@@ -537,7 +537,7 @@ export default class PermissionForm {
                     dt[1] === 0 ? allPlayer[dt[2]].xuid : dt[3] != "" ? data.name2xuid(dt[3]) : this.inputIsEmpty(pl) ? null : null;
                 // 检查XUID
                 if (xuid) {
-                    this.getPermInst().groupAddUser(groupName, xuid);
+                    this.getPermInst().addUserToGroup(groupName, xuid);
                     this.continueForm(player, () => this.editPanel(pl));
                 } else pl.tell(this.tr("xuidNull"));
             });
@@ -551,7 +551,7 @@ export default class PermissionForm {
     private deleteUserForm(player: Player) {
         this.selectGroup(player, (groupName) => {
             const p = this.getPermInst();
-            const groupUser = this.getPermInst().getGroup(groupName).group.user; // 所有用户
+            const groupUser = this.getPermInst().retrieveGroup(groupName).group.user; // 所有用户
             const fm = this.customForm();
             fm.addLabel(this.tr("deleteUserForm", { 0: groupName }));
             groupUser.forEach((i) => {
@@ -561,7 +561,7 @@ export default class PermissionForm {
                 if (dt == null) return this.formClose(pl);
                 dt.shift(); // 去除Label
                 for (let i = 0; i < dt.length; i++) {
-                    dt[i] ? p.groupDeleteUser(groupName, groupUser[i]) : null; // 如果开关变为true，则代表删除用户
+                    dt[i] ? p.removeUserFromGroup(groupName, groupUser[i]) : null; // 如果开关变为true，则代表删除用户
                 }
                 this.continueForm(pl, () => this.editPanel(pl));
             });
@@ -598,7 +598,7 @@ export default class PermissionForm {
     private searchUserGroupForm(player: Player) {
         this.searchComponent(player, (xuid) => {
             if (xuid === null) return player.tell(this.tr("xuidNull"));
-            const group = this.getPermInst().getUserGroups(xuid);
+            const group = this.getPermInst().retrieveUserGroups(xuid);
             // log(`xuid: ${xuid}`);
             // log(`\n${JSON.stringify(group, null, 2)}`);
             group.length !== 0 ? this.viewForm(player, group) : player.tell(this.tr("searchUserGroupForm"));
@@ -613,12 +613,12 @@ export default class PermissionForm {
         this.searchComponent(player, (xuid) => {
             if (xuid === null) return player.tell(this.tr("xuidNull"));
             const p = this.getPermInst();
-            const { authority, source } = p.getUserPermissions(xuid); // 获取用户的权限
+            const { authority, source } = p.retrieveUserPermissions(xuid); // 获取用户的权限
             // form
             const fm = this.customForm();
             for (const key in source) {
                 // 遍历权限
-                const inf = p.getPermission(key); // 获取权限详细信息
+                const inf = p.retrievePermission(key); // 获取权限详细信息
                 fm.addLabel(
                     this.tr("searchUserPermissionForm.Label-0", {
                         0: inf ? inf.name : key, // 显示权限名
